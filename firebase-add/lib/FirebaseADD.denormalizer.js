@@ -46,12 +46,62 @@ var matchExpecting = function(data) {
 	return matching;
 };
 
+var getVariablesInString = function(string) {
+	var variables = [];
 
+	if(Config.logs.debug) console.log('Attempting to get variables in string');
+
+	string = string.replace(/\{\{(.*?)\}\}/g, "$1");
+
+	if(Config.logs.debug) console.log(string);
+
+	variables = string.split(' ');
+
+	return variables;
+};
+
+var getVariableValues = function(variables, data) {
+	Object.keys(variables).forEach(function(variableKey) {
+		if(data[variables[variableKey]] !== undefined) {
+			variables[variableKey] = data[variables[variableKey]];
+		}
+	});
+
+	return variables;
+};
+
+var replaceVariablesInString = function(string, variables) {
+	Object.keys(variables).forEach(function(variable) {
+		string = string.replace('{{' + variable + '}}', variables[variable]);
+	});
+
+	return string;
+};
 
 var constructPlace = function(place, data) {
-	return {
-		thisIsAnExample: 'test'
-	};
+
+	if(Config.logs.debug) console.log('Attempting to construct place');
+	if(Config.logs.debug) console.log(JSON.stringify(place));
+	if(Config.logs.debug) console.log(JSON.stringify(data));
+
+	var constructedPlace = {};
+
+	constructedPlace._variables = getVariableValues(place.variables, data);
+
+	if(Config.logs.debug) console.log('Variable Values');
+	if(Config.logs.debug) console.log(JSON.stringify(constructedPlace._variables));
+
+	// Grab the variables so we can match them up
+	//Object.keys(place.variables)
+	
+	var _variablesInPath = replaceVariablesInString(place.path, constructedPlace._variables);
+
+	console.log('Variables');
+	console.log(_variablesInPath);
+
+	//"{{cat}} {{dog}}".replace(/{([^{}]+)}/g, "$1") => "{cat} {dog}"
+
+	return constructedPlace;
 };
 
 var validatePlace = function(places) {
@@ -63,6 +113,10 @@ var validatePlace = function(places) {
 var initPlaces = function(places, data) {
 	var placesValid = true;
 	var placesConstructed = true;
+
+	if(Config.logs.debug) console.log('Attempting to init places');
+	if(Config.logs.debug) console.log(JSON.stringify(places));
+	if(Config.logs.debug) console.log(JSON.stringify(data));
 
 	places.forEach(function(place) {
 		if(placesValid && placesConstructed) {
@@ -139,7 +193,7 @@ Denormalizer.prototype.denormalize = function(originalData) {
 			// Make sure we're seeing somewhat the object we need to have
 			if(matchExpecting(originalData)) {
 
-				var constructedPlaces = initPlaces(vm.schema.places);
+				var constructedPlaces = initPlaces(vm.schema.places, originalData);
 
 				if(constructedPlaces) {
 
