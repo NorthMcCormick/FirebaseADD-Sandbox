@@ -1,5 +1,5 @@
 module.exports = {
-	databases: {
+	database: {
 		default: null
 	},
 	logs: {

@@ -13,6 +13,8 @@ admin.initializeApp({
 
 var db = admin.database();
 
+FBAddConfig.database.default = db;
+
 var tweetDenormalizer = new FBAddDenormalizer({
 	schema: {
 		expectingType: 'object',					// The type, could be number, string, object, array

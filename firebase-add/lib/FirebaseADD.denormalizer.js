@@ -1,13 +1,18 @@
 var	Config = require('./FirebaseADD.config.js');
+var	Database = require('./FirebaseADD.database.js');
 var colors = require('colors');
 var Q = require('q');
 
 var vm = {
-	schema: null
+	schema: null,
+	database: null
 };
 
 function Denormalizer(options) {
 	var couldConstruct = true;
+
+	console.log('Database');
+	console.log(Database);
 
 	if(validateSchema(options.schema)) {
 		vm.schema = options.schema;
@@ -174,10 +179,28 @@ var initPlaces = function(places, data) {
 };
 
 	
-var denormalizeToPlace = function(data, place) {
+var denormalizeToPlace = function(place, data) {
 	return Q.Promise(function(resolve, reject) {
 
-		resolve(true);
+		if(Config.logs.debug) console.log('Attempting to denormalize to place');
+		if(Config.logs.debug) console.log('Place: ' + JSON.stringify(place));
+
+		switch(place.operation) {
+			case 'push':
+				try {
+					Database.test();
+				} catch(e) {
+					console.error(e);
+				}
+
+				resolve(true);
+			break;
+
+			default:
+				console.error(('Could not denormalize to place - Invalid operation: ' + place.operation).red);
+				reject(false);
+			break;
+		}
 	});
 };
 
@@ -205,10 +228,6 @@ var validateSchema = function(inputSchema) {
 	return schemaValid;
 };
 
-var denormalize = function(data) {
-
-};
-
 Denormalizer.prototype.denormalize = function(originalData) {
 	if(vm.schema !== null) {
 		if(Config.logs.debug) console.log('Attempting to denormalize data');
@@ -227,7 +246,7 @@ Denormalizer.prototype.denormalize = function(originalData) {
 					var placesPromises = [];
 					
 					constructedPlaces.forEach(function(place) {
-						placesPromises.push(denormalizeToPlace(originalData, place));
+						placesPromises.push(denormalizeToPlace(place));
 					});
 
 					Q.allSettled(placesPromises).then(function(results) {
