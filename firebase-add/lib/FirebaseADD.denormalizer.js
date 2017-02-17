@@ -14,6 +14,9 @@ function Denormalizer(options) {
 	console.log('Database');
 	console.log(Database);
 
+	console.log('Config');
+	console.log(Config);
+
 	if(validateSchema(options.schema)) {
 		vm.schema = options.schema;
 	}else{
@@ -121,10 +124,10 @@ var constructPlace = function(place, data) {
 	if(Config.logs.debug) console.log('Variable Values');
 	if(Config.logs.debug) console.log(JSON.stringify(constructedPlace._variables));
 	
-	constructPlace._path = replaceVariablesInString(place.path, constructedPlace._variables);
+	constructedPlace._path = replaceVariablesInString(place.path, constructedPlace._variables);
 
 	if(Config.logs.debug) console.log('Constructed path');
-	if(Config.logs.debug) console.log(constructPlace._path);
+	if(Config.logs.debug) console.log(constructedPlace._path);
 
 	// Now we need to construct the value that we are going to replicate
 	
@@ -187,13 +190,22 @@ var denormalizeToPlace = function(place, data) {
 
 		switch(place.operation) {
 			case 'push':
-				try {
-					Database.test();
-				} catch(e) {
-					console.error(e);
-				}
+				Database.push(place._constructedPlace._path, place._constructedPlace._value).then(function(results) {
+					if(Config.logs.debug) console.log('Successfully denormalized');
 
-				resolve(true);
+					resolve(true);
+
+				}, function(error) {
+					console.log('Error denormalizing'.red);
+					console.log(error);
+
+					reject(false);
+				}).catch(function(error) {
+					console.log('Fatal error denormalizing'.red);
+					console.log(error);
+
+					reject(false);
+				});
 			break;
 
 			default:

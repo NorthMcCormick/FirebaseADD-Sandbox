@@ -14,6 +14,7 @@ admin.initializeApp({
 var db = admin.database();
 
 FBAddConfig.database.default = db;
+FBAddConfig.TEST = 'test';
 
 var tweetDenormalizer = new FBAddDenormalizer({
 	schema: {
