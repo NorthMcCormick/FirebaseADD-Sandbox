@@ -50,10 +50,34 @@ var constructPlace = function(place) {
 
 };
 
-var validatePlace = function(place) {
-
+var validatePlace = function(places) {
+	
 };
 
+var initPlaces = function(places, data) {
+	var placesValid = true;
+	var placesConstructed = true;
+
+	places.forEach(function(place) {
+		if(placesValid) {
+			if(!validatePlace(place)) {
+				placesValid = false;
+			}
+		}
+	});
+
+	if(!placesValid) {
+		console.error('Could not denormalize: places not valid');
+	}
+
+	if(!placesConstructed) {
+		console.error('Could not denormalize: places could not be constructed');
+	}
+
+	return (placesValid && placesConstructed);
+};
+
+	
 var denormalizeToPlace = function(data, place) {
 	return Q.Promise(function(resolve, reject) {
 		resolve(true);
@@ -95,6 +119,8 @@ Denormalizer.prototype.denormalize = function(originalData) {
 		return Q.Promise(function(resolve, reject) {
 			// Make sure we're seeing somewhat the object we need to have
 			if(matchExpecting(originalData)) {
+
+
 
 				// Start denormalizing
 				var placesPromises = [];
