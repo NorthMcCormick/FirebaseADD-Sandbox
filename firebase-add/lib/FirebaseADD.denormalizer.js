@@ -79,6 +79,28 @@ var replaceVariablesInString = function(string, variables) {
 	return string;
 };
 
+var getValueToDuplicate = function(place, data) {
+	var newValue = null;
+
+	switch(place.type) {
+		case 'object':
+			newValue = {};
+
+			place.properties.forEach(function(property) {
+				if(data[property] !== undefined) {
+					newValue[property] = data[property];
+				}
+			});
+		break;
+
+		default:
+			console.log('Could not denormalize data. Place is trying to use an undefined type: ' + place.type);
+		break;
+	}
+
+	return newValue;
+};
+
 var constructPlace = function(place, data) {
 
 	if(Config.logs.debug) console.log('Attempting to construct place');
@@ -101,6 +123,7 @@ var constructPlace = function(place, data) {
 
 	// Now we need to construct the value that we are going to replicate
 	
+	constructedPlace._value = getValueToDuplicate(place, data);
 
 	return constructedPlace;
 };
