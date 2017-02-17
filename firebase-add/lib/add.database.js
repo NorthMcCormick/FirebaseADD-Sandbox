@@ -1,4 +1,4 @@
-var	Config = require('./FirebaseADD.config.js');
+var	Config = require('./add.config.js');
 var colors = require('colors');
 var Q = require('q');
 

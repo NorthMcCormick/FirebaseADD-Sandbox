@@ -28,6 +28,13 @@ var tweetDenormalizer = new FBAddDenormalizer({
 				userHandle: 'handle'				// This will place our input handle to userHandle in the path
 			},
 			properties: ['tweet']					// We only want to duplicate the tweet, not the handle over
+		},
+		{
+			operation: 'push',						// Should we overwrite (set) or add to the list (push) these?
+			type: 'object',							// What are we saving? If object, we expect 'properties' and if not we are just saving the value
+			path: '/usersWhoTweeted',				// Where should we put this? 
+			variables: {},
+			properties: ['handle']					// We only want to duplicate the tweet, not the handle over
 		}]
 	}
 });

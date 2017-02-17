@@ -1,5 +1,5 @@
-var	Config = require('./FirebaseADD.config.js');
-var	Database = require('./FirebaseADD.database.js');
+var	Config = require('./add.config.js');
+var	Database = require('./add.database.js');
 var colors = require('colors');
 var Q = require('q');
 

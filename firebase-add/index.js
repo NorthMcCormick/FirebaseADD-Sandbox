@@ -1,4 +1,4 @@
 module.exports = {
-	Config: require('./lib/FirebaseADD.config.js'),
-	Denormalizer: require('./lib/FirebaseADD.denormalizer.js')
+	Config: require('./lib/add.config.js'),
+	Denormalizer: require('./lib/add.denormalizer.js')
 };
