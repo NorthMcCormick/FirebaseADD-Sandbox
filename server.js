@@ -16,7 +16,7 @@ var db = admin.database();
 var tweetDenormalizer = new FBAddDenormalizer({
 	schema: {
 		expectingType: 'object',					// The type, could be number, string, object, array
-		expectingProperties: ['handle', 'tweet']	// The properties of the object (not required for other types, maybe)
+		expectingProperties: ['handle', 'tweet'],	// The properties of the object (not required for other types, maybe)
 		places: [{
 			operation: 'push',						// Should we overwrite (set) or add to the list (push) these?
 			path: '/userTweets/{{ userHandle }}',	// Where should we put this? 
