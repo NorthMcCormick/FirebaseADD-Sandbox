@@ -46,12 +46,18 @@ var matchExpecting = function(data) {
 	return matching;
 };
 
-var constructPlace = function(place) {
 
+
+var constructPlace = function(place, data) {
+	return {
+		thisIsAnExample: 'test'
+	};
 };
 
 var validatePlace = function(places) {
+	// Todo: Validate that the place data is correct, variables are right, etc.
 	
+	return true;
 };
 
 var initPlaces = function(places, data) {
@@ -59,9 +65,17 @@ var initPlaces = function(places, data) {
 	var placesConstructed = true;
 
 	places.forEach(function(place) {
-		if(placesValid) {
+		if(placesValid && placesConstructed) {
 			if(!validatePlace(place)) {
 				placesValid = false;
+			}else{
+				var constructedPlace = constructPlace(place, data);
+
+				if(!constructedPlace) {
+					placesConstructed = false;
+				}else{
+					place._constructedPlace = constructedPlace;
+				}
 			}
 		}
 	});
@@ -74,12 +88,17 @@ var initPlaces = function(places, data) {
 		console.error('Could not denormalize: places could not be constructed');
 	}
 
-	return (placesValid && placesConstructed);
+	if(placesValid && placesConstructed) {
+		return places;
+	}else{
+		return false;
+	}
 };
 
 	
 var denormalizeToPlace = function(data, place) {
 	return Q.Promise(function(resolve, reject) {
+
 		resolve(true);
 	});
 };
@@ -120,24 +139,32 @@ Denormalizer.prototype.denormalize = function(originalData) {
 			// Make sure we're seeing somewhat the object we need to have
 			if(matchExpecting(originalData)) {
 
+				var constructedPlaces = initPlaces(vm.schema.places);
 
+				if(constructedPlaces) {
 
-				// Start denormalizing
-				var placesPromises = [];
-				
-				vm.schema.places.forEach(function(place) {
-					placesPromises.push(denormalizeToPlace(originalData, place));
-				});
+					if(Config.logs.debug) console.log('Constructed places');
+					if(Config.logs.debug) console.log(JSON.stringify(constructedPlaces, 4, true));
 
-				Q.allSettled(placesPromises).then(function(results) {
-					if(Config.logs.debug) console.log('Finished denormalizing');
-					if(Config.logs.debug) console.log(JSON.stringify(results, 4, true));
-				}).catch(function(error) {
-					console.error('Could not denormalize'.red);
-					console.error(error);
-				});
+					var placesPromises = [];
+					
+					constructedPlaces.forEach(function(place) {
+						placesPromises.push(denormalizeToPlace(originalData, place));
+					});
 
-				resolve(true);
+					Q.allSettled(placesPromises).then(function(results) {
+						if(Config.logs.debug) console.log('Finished denormalizing');
+						if(Config.logs.debug) console.log(JSON.stringify(results, 4, true));
+
+						resolve(true);
+					}).catch(function(error) {
+						console.error('Could not denormalize'.red);
+						console.error(error);
+					});
+
+				}else{
+					reject(false);
+				}
 			}else{
 				if(Config.logs.warn) console.warn('Could not denormalize object, schema does not match'.yellow);
 
