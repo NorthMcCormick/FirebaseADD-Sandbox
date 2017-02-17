@@ -101,6 +101,20 @@ var getValueToDuplicate = function(place, data) {
 			});
 		break;
 
+		case 'string':
+			if(place.property) {
+				newValue = data[place.property];
+			}else{
+				newValue = data;
+			}
+
+			/*place.properties..forEach(function(property) {
+				if(data[property] !== undefined) {
+					newValue[property] = data[property];
+				}
+			});*/
+		break;
+
 		default:
 			console.log('Could not denormalize data. Place is trying to use an undefined type: ' + place.type);
 		break;

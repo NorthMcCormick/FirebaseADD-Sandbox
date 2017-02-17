@@ -31,10 +31,10 @@ var tweetDenormalizer = new FBAddDenormalizer({
 		},
 		{
 			operation: 'push',						// Should we overwrite (set) or add to the list (push) these?
-			type: 'object',							// What are we saving? If object, we expect 'properties' and if not we are just saving the value
+			type: 'string',							// What are we saving? If object, we expect 'properties' and if not we are just saving the value
 			path: '/usersWhoTweeted',				// Where should we put this? 
 			variables: {},
-			properties: ['handle']					// We only want to duplicate the tweet, not the handle over
+			property: 'handle'
 		}]
 	}
 });
