@@ -19,6 +19,7 @@ var tweetDenormalizer = new FBAddDenormalizer({
 		expectingProperties: ['handle', 'tweet'],	// The properties of the object (not required for other types, maybe)
 		places: [{
 			operation: 'push',						// Should we overwrite (set) or add to the list (push) these?
+			type: 'object',							// What are we saving? If object, we expect 'properties' and if not we are just saving the value
 			path: '/userTweets/{{userHandle}}',		// Where should we put this? 
 			variables: {							// We can use variables in handlebars that map our input data to the path
 				userHandle: 'handle'				// This will place our input handle to userHandle in the path

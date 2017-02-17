@@ -73,6 +73,7 @@ var getVariableValues = function(variables, data) {
 var replaceVariablesInString = function(string, variables) {
 	Object.keys(variables).forEach(function(variable) {
 		string = string.replace('{{' + variable + '}}', variables[variable]);
+		string = string.replace('{{ ' + variable + ' }}', variables[variable]);
 	});
 
 	return string;
@@ -86,20 +87,20 @@ var constructPlace = function(place, data) {
 
 	var constructedPlace = {};
 
+	// First get the variables and then construct the path from those variables
+
 	constructedPlace._variables = getVariableValues(place.variables, data);
 
 	if(Config.logs.debug) console.log('Variable Values');
 	if(Config.logs.debug) console.log(JSON.stringify(constructedPlace._variables));
-
-	// Grab the variables so we can match them up
-	//Object.keys(place.variables)
 	
-	var _variablesInPath = replaceVariablesInString(place.path, constructedPlace._variables);
+	constructPlace._path = replaceVariablesInString(place.path, constructedPlace._variables);
 
-	console.log('Variables');
-	console.log(_variablesInPath);
+	if(Config.logs.debug) console.log('Constructed path');
+	if(Config.logs.debug) console.log(constructPlace._path);
 
-	//"{{cat}} {{dog}}".replace(/{([^{}]+)}/g, "$1") => "{cat} {dog}"
+	// Now we need to construct the value that we are going to replicate
+	
 
 	return constructedPlace;
 };
@@ -163,7 +164,7 @@ var validateSchema = function(inputSchema) {
 	if(inputSchema.expectingType) {
 		switch(inputSchema.expectingType) {
 			case 'object':
-
+				// Todo: Validate that it is has the other properties for validating an object
 			break;
 
 			default:
