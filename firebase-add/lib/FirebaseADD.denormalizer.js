@@ -46,6 +46,20 @@ var matchExpecting = function(data) {
 	return matching;
 };
 
+var constructPlace = function(place) {
+
+};
+
+var validatePlace = function(place) {
+
+};
+
+var denormalizeToPlace = function(data, place) {
+	return Q.Promise(function(resolve, reject) {
+		resolve(true);
+	});
+};
+
 var validateSchema = function(inputSchema) {
 	var schemaValid = true;
 
@@ -83,8 +97,19 @@ Denormalizer.prototype.denormalize = function(originalData) {
 			if(matchExpecting(originalData)) {
 
 				// Start denormalizing
+				var placesPromises = [];
+				
+				vm.schema.places.forEach(function(place) {
+					placesPromises.push(denormalizeToPlace(originalData, place));
+				});
 
-
+				Q.allSettled(placesPromises).then(function(results) {
+					if(Config.logs.debug) console.log('Finished denormalizing');
+					if(Config.logs.debug) console.log(JSON.stringify(results, 4, true));
+				}).catch(function(error) {
+					console.error('Could not denormalize'.red);
+					console.error(error);
+				});
 
 				resolve(true);
 			}else{
