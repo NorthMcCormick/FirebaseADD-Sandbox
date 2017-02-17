@@ -222,6 +222,25 @@ var denormalizeToPlace = function(place, data) {
 				});
 			break;
 
+			case 'set':
+				Database.set(place._constructedPlace._path, place._constructedPlace._value).then(function(results) {
+					if(Config.logs.debug) console.log('Successfully denormalized');
+
+					resolve(true);
+
+				}, function(error) {
+					console.log('Error denormalizing'.red);
+					console.log(error);
+
+					reject(false);
+				}).catch(function(error) {
+					console.log('Fatal error denormalizing'.red);
+					console.log(error);
+
+					reject(false);
+				});
+			break;
+
 			default:
 				console.error(('Could not denormalize to place - Invalid operation: ' + place.operation).red);
 				reject(false);

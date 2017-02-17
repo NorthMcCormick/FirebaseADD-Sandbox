@@ -35,6 +35,13 @@ var tweetDenormalizer = new FBAddDenormalizer({
 			path: '/usersWhoTweeted',				// Where should we put this? 
 			variables: {},
 			property: 'handle'
+		},
+		{
+			operation: 'set',						// Should we overwrite (set) or add to the list (push) these?
+			type: 'string',							// What are we saving? If object, we expect 'properties' and if not we are just saving the value
+			path: '/lastUser',						// Where should we put this? 
+			variables: {},
+			property: 'handle'
 		}]
 	}
 });
