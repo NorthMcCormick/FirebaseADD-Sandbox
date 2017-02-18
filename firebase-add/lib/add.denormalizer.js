@@ -46,6 +46,12 @@ var matchExpecting = function(data) {
 			});
 		break;
 
+		case 'string':
+			if(data === undefined) {
+				matching = false;
+			}
+		break;
+
 		default:
 			matching = false;
 		break;
@@ -250,6 +256,10 @@ var validateSchema = function(inputSchema) {
 		switch(inputSchema.expectingType) {
 			case 'object':
 				// Todo: Validate that it is has the other properties for validating an object
+			break;
+
+			case 'string':
+				// Todo: Validate that it has the other neccessary properites 
 			break;
 
 			default:

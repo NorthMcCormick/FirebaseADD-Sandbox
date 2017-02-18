@@ -166,7 +166,7 @@ The value it will duplicate is:
 }
 ```
 
-#### schema.places.property: String *required if `type` is `string`, `number`, or `boolean`*
+#### schema.places.property: String *required if `type` is `string`, `number`, or `boolean` and the input is an object*
 
 The property from the object you want to use. This propety must be one of the above 3 types. It will fail if it is an object or an array.
 
