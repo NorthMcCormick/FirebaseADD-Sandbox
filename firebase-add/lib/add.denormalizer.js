@@ -334,38 +334,19 @@ var updatePlace = function(place, data) {
 		if(Config.logs.debug) console.log('Place: ' + JSON.stringify(place));
 
 		switch(place.operation) {
-			case 'push':
-				Database.push(place._constructedPlace._path, place._constructedPlace._value).then(function(results) {
-					if(Config.logs.debug) console.log('Successfully denormalized');
-
-					resolve(true);
-
-				}, function(error) {
-					console.log('Error denormalizing'.red);
-					console.log(error);
-
-					reject(false);
-				}).catch(function(error) {
-					console.log('Fatal error denormalizing'.red);
-					console.log(error);
-
-					reject(false);
-				});
-			break;
-
 			case 'set':
 				Database.set(place._constructedPlace._path, place._constructedPlace._value).then(function(results) {
-					if(Config.logs.debug) console.log('Successfully denormalized');
+					if(Config.logs.debug) console.log('Successfully updated denormalized value');
 
 					resolve(true);
 
 				}, function(error) {
-					console.log('Error denormalizing'.red);
+					console.log('Error updating denormalized value'.red);
 					console.log(error);
 
 					reject(false);
 				}).catch(function(error) {
-					console.log('Fatal error denormalizing'.red);
+					console.log('Fatal error updating denormalized value'.red);
 					console.log(error);
 
 					reject(false);
@@ -373,7 +354,7 @@ var updatePlace = function(place, data) {
 			break;
 
 			default:
-				console.error(('Could not denormalize to place - Invalid operation: ' + place.operation).red);
+				console.error(('Could not update denormalized value with place - Invalid operation: ' + place.operation).red);
 				reject(false);
 			break;
 		}
@@ -458,7 +439,7 @@ Denormalizer.prototype.update = function(newData) {
 		if(Config.logs.debug) console.log('Attempting to update denormalized data');
 
 		return Q.Promise(function(resolve, reject) {
-			if(matchExpectingForUpdate(originalData)) {
+			if(matchExpectingForUpdate(newData)) {
 				var constructedPlaces = initPlaces(vm.schema.places, newData);
 
 				if(constructedPlaces) {

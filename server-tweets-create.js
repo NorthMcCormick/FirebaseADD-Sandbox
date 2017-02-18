@@ -65,6 +65,22 @@ db.ref('tweets').on('child_added', function(snapshot) {
 	});
 });
 
+db.ref('tweets').on('child_changed', function(snapshot) {
+	var newTweet 		= snapshot.val();
+		newTweet.$key 	= snapshot.key;
+
+	tweetDenormalizer.update(newTweet).then(function(result) {
+		console.log('Updated', result);
+
+	}, function(error) {
+		console.error('Could not update', error);
+
+	}).catch(function(e) {
+		console.log('Exception');
+		console.log(e);
+	});
+});
+
 // For testing
 
 

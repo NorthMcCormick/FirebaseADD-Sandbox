@@ -16,6 +16,10 @@ The initial version of the lib is built on the idea of adding data, updating and
 
 The first version of the lib will be able to handle the top most level properties on an object. Eventually better path parsing will be added so that you can reach into an object and select a nested property to use in the duplicated object.
 
+### Functions for data
+
+The ability to define a function for a property and perform a calculation on it. Maybe this function grabs other data first, does some validation, or alters the format of the data.
+
 ## Installation
 
 Todo
