@@ -10,11 +10,11 @@ The ability to have multiple realtime databases loaded so that you can duplicate
 
 ### Handle update and remove
 
-The initial version of the librar is built on the idea of adding data, updating and removing will come along and will be able to utilize the same schema that the add does.
+The initial version of the lib is built on the idea of adding data, updating and removing will come along and will be able to utilize the same schema that the add does.
 
 ### Complex objects
 
-The first version of the library will be able to handle the top most level properties on an object. Eventually better path parsing will be added so that you can reach into an object and select a nested property to use in the duplicated object.
+The first version of the lib will be able to handle the top most level properties on an object. Eventually better path parsing will be added so that you can reach into an object and select a nested property to use in the duplicated object.
 
 ## Installation
 
