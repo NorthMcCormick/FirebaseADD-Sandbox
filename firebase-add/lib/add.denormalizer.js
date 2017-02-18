@@ -47,6 +47,21 @@ var matchExpecting = function(data) {
 		break;
 
 		case 'string':
+			// TODO: Better validation
+			if(data === undefined) {
+				matching = false;
+			}
+		break;
+
+		case 'number':
+			// TODO: Better validation
+			if(data === undefined) {
+				matching = false;
+			}
+		break;
+
+		case 'boolean':
+			// TODO: Better validation
 			if(data === undefined) {
 				matching = false;
 			}
@@ -108,6 +123,22 @@ var getValueToDuplicate = function(place, data) {
 		break;
 
 		case 'string':
+			if(place.property) {
+				newValue = data[place.property];
+			}else{
+				newValue = data;
+			}
+		break;
+
+		case 'number':
+			if(place.property) {
+				newValue = data[place.property];
+			}else{
+				newValue = data;
+			}
+		break;
+
+		case 'boolean':
 			if(place.property) {
 				newValue = data[place.property];
 			}else{
