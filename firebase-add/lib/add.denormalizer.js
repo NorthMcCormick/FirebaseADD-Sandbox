@@ -107,12 +107,6 @@ var getValueToDuplicate = function(place, data) {
 			}else{
 				newValue = data;
 			}
-
-			/*place.properties..forEach(function(property) {
-				if(data[property] !== undefined) {
-					newValue[property] = data[property];
-				}
-			});*/
 		break;
 
 		default:

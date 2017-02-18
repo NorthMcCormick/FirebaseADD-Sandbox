@@ -1,8 +1,8 @@
 var admin = require('firebase-admin');
 var serviceAccount = require('./firebase-creds.json');
 
-var FBAddConfig = require('./firebase-add/index.js').Config;
-var FBAddDenormalizer = require('./firebase-add/index.js').Denormalizer;
+var ADDConfig = require('./firebase-add/index.js').Config;
+var ADDDenormalizer = require('./firebase-add/index.js').Denormalizer;
 
 var faker = require('faker');
 
@@ -13,10 +13,9 @@ admin.initializeApp({
 
 var db = admin.database();
 
-FBAddConfig.database.default = db;
-FBAddConfig.TEST = 'test';
+ADDConfig.database.default = db;
 
-var tweetDenormalizer = new FBAddDenormalizer({
+var tweetDenormalizer = new ADDDenormalizer({
 	schema: {
 		expectingType: 'object',					// The type, could be number, string, object, array
 		expectingProperties: ['handle', 'tweet'],	// The properties of the object (not required for other types, maybe)
@@ -38,7 +37,7 @@ var tweetDenormalizer = new FBAddDenormalizer({
 		},
 		{
 			operation: 'set',						// Should we overwrite (set) or add to the list (push) these?
-			type: 'string',							// What are we saving? If object, we expect 'properties' and if not we are just saving the value
+			type: 'string',							// What are we saving? A string, so it will just be a value in the database with a key
 			path: '/lastUser',						// Where should we put this? 
 			variables: {},
 			property: 'handle'
