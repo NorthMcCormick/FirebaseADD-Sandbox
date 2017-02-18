@@ -45,41 +45,18 @@ var tweetDenormalizer = new ADDDenormalizer({
 	}
 });
 
-db.ref('tweets').on('child_added', function(snapshot) {
+db.ref('tweets').on('child_updated', function(snapshot) {
 	var newTweet = snapshot.val();
 
 
-	tweetDenormalizer.denormalize(newTweet).then(function(result) {
-		console.log('Denormalized', result);
+	tweetDenormalizer.update(newTweet).then(function(result) {
+		console.log('Updated', result);
 
 	}, function(error) {
-		console.error('Could not denormalize', error);
+		console.error('Could not update', error);
 
 	}).catch(function(e) {
 		console.log('Exception');
 		console.log(e);
 	});
 });
-
-// For testing
-
-
-/*setTimeout(function() {
-
-	var tweetSample = {
-		"handle": faker.internet.userName(),
-		"tweet": "Wow hello this is my tweet, how cool is this"
-	};
-
-	db.ref('tweets').push(tweetSample);
-})
-
-setTimeout(function() {
-
-	var tweetSample = {
-		"invalid_handle": faker.internet.userName(),
-		"tweet": "Wow hello this is my tweet, how cool is this"
-	};
-
-	db.ref('tweets').push(tweetSample);
-}, 500)*/

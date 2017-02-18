@@ -33,14 +33,61 @@ function Denormalizer(options) {
 	}
 }
 
-var matchExpecting = function(data) {
+var matchExpectingForDenormalize = function(data) {
 	var matching = true;
 
 	switch(vm.schema.expectingType) {
 
 		case 'object':
-			Object.keys(data).forEach(function(dataKey) {
-				if(vm.schema.expectingProperties.indexOf(dataKey) <= -1) {
+			vm.schema.expectingProperties.forEach(function(expectedProperty) {
+				if(data[expectedProperty] === undefined) {
+					if(Config.logs.debug) console.log('Failed to match expected property: ' + expectedProperty);
+					matching = false;
+				}
+			});
+		break;
+
+		case 'string':
+			// TODO: Better validation
+			if(data === undefined) {
+				matching = false;
+			}
+		break;
+
+		case 'number':
+			// TODO: Better validation
+			if(data === undefined) {
+				matching = false;
+			}
+		break;
+
+		case 'boolean':
+			// TODO: Better validation
+			if(data === undefined) {
+				matching = false;
+			}
+		break;
+
+		default:
+			matching = false;
+		break;
+	}
+
+	return matching;
+};
+
+/*
+ * Matching For update will be extended to allow for partial updates
+ */
+var matchExpectingForUpdate = function(data) {
+	var matching = true;
+
+	switch(vm.schema.expectingType) {
+
+		case 'object':
+			vm.schema.expectingProperties.forEach(function(expectedProperty) {
+				if(data[expectedProperty] === undefined) {
+					if(Config.logs.debug) console.log('Failed to match expected property: ' + expectedProperty);
 					matching = false;
 				}
 			});
@@ -280,6 +327,59 @@ var denormalizeToPlace = function(place, data) {
 	});
 };
 
+var updatePlace = function(place, data) {
+	return Q.Promise(function(resolve, reject) {
+
+		if(Config.logs.debug) console.log('Attempting to denormalize to place');
+		if(Config.logs.debug) console.log('Place: ' + JSON.stringify(place));
+
+		switch(place.operation) {
+			case 'push':
+				Database.push(place._constructedPlace._path, place._constructedPlace._value).then(function(results) {
+					if(Config.logs.debug) console.log('Successfully denormalized');
+
+					resolve(true);
+
+				}, function(error) {
+					console.log('Error denormalizing'.red);
+					console.log(error);
+
+					reject(false);
+				}).catch(function(error) {
+					console.log('Fatal error denormalizing'.red);
+					console.log(error);
+
+					reject(false);
+				});
+			break;
+
+			case 'set':
+				Database.set(place._constructedPlace._path, place._constructedPlace._value).then(function(results) {
+					if(Config.logs.debug) console.log('Successfully denormalized');
+
+					resolve(true);
+
+				}, function(error) {
+					console.log('Error denormalizing'.red);
+					console.log(error);
+
+					reject(false);
+				}).catch(function(error) {
+					console.log('Fatal error denormalizing'.red);
+					console.log(error);
+
+					reject(false);
+				});
+			break;
+
+			default:
+				console.error(('Could not denormalize to place - Invalid operation: ' + place.operation).red);
+				reject(false);
+			break;
+		}
+	});
+};
+
 var validateSchema = function(inputSchema) {
 	var schemaValid = true;
 
@@ -314,7 +414,7 @@ Denormalizer.prototype.denormalize = function(originalData) {
 
 		return Q.Promise(function(resolve, reject) {
 			// Make sure we're seeing somewhat the object we need to have
-			if(matchExpecting(originalData)) {
+			if(matchExpectingForDenormalize(originalData)) {
 
 				var constructedPlaces = initPlaces(vm.schema.places, originalData);
 
@@ -350,6 +450,45 @@ Denormalizer.prototype.denormalize = function(originalData) {
 		});
 	}else{
 		console.error('Could not denormalize, invalid schema'.red);
+	}
+};
+
+Denormalizer.prototype.update = function(newData) {
+	if(vm.schema !== null) {
+		if(Config.logs.debug) console.log('Attempting to update denormalized data');
+
+		return Q.Promise(function(resolve, reject) {
+			if(matchExpectingForUpdate(originalData)) {
+				var constructedPlaces = initPlaces(vm.schema.places, newData);
+
+				if(constructedPlaces) {
+
+					if(Config.logs.debug) console.log('Constructed places');
+					if(Config.logs.debug) console.log(JSON.stringify(constructedPlaces, 4, true));
+
+					var placesPromises = [];
+					
+					constructedPlaces.forEach(function(place) {
+						if(place.operation === 'set') {
+							placesPromises.push(updatePlace(place));
+						}
+					});
+
+					/*Q.allSettled(placesPromises).then(function(results) {
+						if(Config.logs.debug) console.log('Finished denormalizing');
+						if(Config.logs.debug) console.log(JSON.stringify(results, 4, true));
+
+						resolve(true);
+					}).catch(function(error) {
+						console.error('Could not denormalize'.red);
+						console.error(error);
+					});*/
+
+				}else{
+					reject(false);
+				}
+			};
+		});
 	}
 };
 
