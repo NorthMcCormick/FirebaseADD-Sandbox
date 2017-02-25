@@ -361,6 +361,40 @@ var updatePlace = function(place, data) {
 	});
 };
 
+var removePlace = function(place, data) {
+	return Q.Promise(function(resolve, reject) {
+
+		if(Config.logs.debug) console.log('Attempting to remove data from place');
+		if(Config.logs.debug) console.log('Place: ' + JSON.stringify(place));
+
+		switch(place.operation) {
+			case 'set':
+				Database.delete(place._constructedPlace._path).then(function(results) {
+					if(Config.logs.debug) console.log('Successfully updated denormalized value');
+
+					resolve(true);
+
+				}, function(error) {
+					console.log('Error updating denormalized value'.red);
+					console.log(error);
+
+					reject(false);
+				}).catch(function(error) {
+					console.log('Fatal error updating denormalized value'.red);
+					console.log(error);
+
+					reject(false);
+				});
+			break;
+
+			default:
+				console.error(('Could not update denormalized value with place - Invalid operation: ' + place.operation).red);
+				reject(false);
+			break;
+		}
+	});
+};
+
 var validateSchema = function(inputSchema) {
 	var schemaValid = true;
 
@@ -439,29 +473,65 @@ Denormalizer.prototype.update = function(newData) {
 		if(Config.logs.debug) console.log('Attempting to update denormalized data');
 
 		return Q.Promise(function(resolve, reject) {
-			if(matchExpectingForUpdate(newData)) {
-				var constructedPlaces = initPlaces(vm.schema.places, newData);
+			var constructedPlaces = initPlaces(vm.schema.places, newData);
+
+			if(constructedPlaces) {
+
+				if(Config.logs.debug) console.log('Constructed places');
+				if(Config.logs.debug) console.log(JSON.stringify(constructedPlaces, 4, true));
+
+				var placesPromises = [];
+				
+				constructedPlaces.forEach(function(place) {
+					if(place.operation === 'set') {
+						placesPromises.push(updatePlace(place));
+					}
+				});
+
+				Q.allSettled(placesPromises).then(function(results) {
+					if(Config.logs.debug) console.log('Finished updating denormalized data');
+					if(Config.logs.debug) console.log(JSON.stringify(results, 4, true));
+
+					resolve(true);
+				}).catch(function(error) {
+					console.error('Could not update denormalized data'.red);
+					console.error(error);
+				});
+
+			}else{
+				reject(false);
+			}
+		});
+	}
+};
+
+Denormalizer.prototype.delete = function(dataToRemove) {
+	if(vm.schema !== null) {
+		if(Config.logs.debug) console.log('Attempting to delete denormalized data');
+
+		return Q.Promise(function(resolve, reject) {
+			if(matchExpectingForUpdate(dataToRemove)) {
+				var constructedPlaces = initPlaces(vm.schema.places, dataToRemove);
 
 				if(constructedPlaces) {
-
 					if(Config.logs.debug) console.log('Constructed places');
 					if(Config.logs.debug) console.log(JSON.stringify(constructedPlaces, 4, true));
 
 					var placesPromises = [];
 					
-					constructedPlaces.forEach(function(place) {
+					/*constructedPlaces.forEach(function(place) {
 						if(place.operation === 'set') {
-							placesPromises.push(updatePlace(place));
+							placesPromises.push(removePlace(place));
 						}
 					});
 
-					/*Q.allSettled(placesPromises).then(function(results) {
-						if(Config.logs.debug) console.log('Finished denormalizing');
+					Q.allSettled(placesPromises).then(function(results) {
+						if(Config.logs.debug) console.log('Finished deleting denormalized data');
 						if(Config.logs.debug) console.log(JSON.stringify(results, 4, true));
 
 						resolve(true);
 					}).catch(function(error) {
-						console.error('Could not denormalize'.red);
+						console.error('Could not delete denormalized data'.red);
 						console.error(error);
 					});*/
 

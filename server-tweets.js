@@ -81,10 +81,24 @@ db.ref('tweets').on('child_changed', function(snapshot) {
 	});
 });
 
+db.ref('tweets').on('child_removed', function(snapshot) {
+	var deletedTweet		= snapshot.val();
+		deletedTweet.$key 	= snapshot.key;
+
+	tweetDenormalizer.delete(deletedTweet).then(function(result) {
+		console.log('Deleted', result);
+	}, function(error) {
+		console.error(error);
+	}).catch(function(e) {
+		console.error('Exception');
+		console.error(e);
+	})
+});
+
 // For testing
 
 
-/*setTimeout(function() {
+setTimeout(function() {
 
 	var tweetSample = {
 		"handle": faker.internet.userName(),
@@ -92,14 +106,4 @@ db.ref('tweets').on('child_changed', function(snapshot) {
 	};
 
 	db.ref('tweets').push(tweetSample);
-})
-
-setTimeout(function() {
-
-	var tweetSample = {
-		"invalid_handle": faker.internet.userName(),
-		"tweet": "Wow hello this is my tweet, how cool is this"
-	};
-
-	db.ref('tweets').push(tweetSample);
-}, 500)*/
+});

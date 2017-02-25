@@ -63,4 +63,26 @@ Database.prototype.set = function(path, data) {
 	});
 };
 
+Database.prototype.delete = function(path, data) {
+	if(Config.logs.debug) console.log('Attempting delete');
+	if(Config.logs.debug) console.log(path);
+	if(Config.logs.debug) console.log(data);
+
+	return Q.promise(function(resolve, reject) {
+		// Todo: This should become smarter to match the database name in the path for multi-database denormalizing
+
+		Config.database.default.ref(path).set(null, function(error) {
+			if(error) {
+				console.log('Error in delete!'.red);
+				console.log(error);
+
+				reject(error);
+			}else{
+				if(Config.logs.debug) console.log('Deleted data!');
+				resolve();
+			}
+		});
+	});
+};
+
 module.exports = new Database();
