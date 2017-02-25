@@ -101,7 +101,7 @@ db.ref('tweets').on('child_removed', function(snapshot) {
 setTimeout(function() {
 
 	var tweetSample = {
-		"handle": faker.internet.userName(),
+		"handle": faker.name.firstName() + '_' + faker.name.lastName(),
 		"tweet": "Wow hello this is my tweet, how cool is this"
 	};
 

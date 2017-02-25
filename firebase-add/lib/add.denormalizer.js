@@ -519,7 +519,7 @@ Denormalizer.prototype.delete = function(dataToRemove) {
 
 					var placesPromises = [];
 					
-					/*constructedPlaces.forEach(function(place) {
+					constructedPlaces.forEach(function(place) {
 						if(place.operation === 'set') {
 							placesPromises.push(removePlace(place));
 						}
@@ -533,7 +533,7 @@ Denormalizer.prototype.delete = function(dataToRemove) {
 					}).catch(function(error) {
 						console.error('Could not delete denormalized data'.red);
 						console.error(error);
-					});*/
+					});
 
 				}else{
 					reject(false);
