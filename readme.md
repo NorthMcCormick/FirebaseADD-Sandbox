@@ -235,6 +235,32 @@ What our final path will be:
 
 `/userTweets/Sammy_Yundt36`
 
+#### schema.places.options: Object
+
+Places can have options to help handle their functions. If no options are provided, the default values will be used.
+
+#### schema.places.options.ignore: Object
+
+If you want to ignore a specific operation on a place, you can set that operation to `true` in the ignore object. 
+
+Example: If we want to show what user last did something we want to update it but we do not want to delete the node even if the main object in the database was deleted. 
+
+```javascript
+{
+	operation: 'set',
+	type: 'string',
+	path: '/lastUser',
+	variables: {},
+	property: 'handle',
+	options: {
+		ignore: {
+			delete: true // We will update the node, but we will never delete it
+		}
+	}
+}
+```
+
+
 ## Required Libraries
 
 - Q

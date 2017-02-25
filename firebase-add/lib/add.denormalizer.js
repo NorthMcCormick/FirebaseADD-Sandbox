@@ -438,7 +438,10 @@ var fixSchema = function(inputSchema) {
 
 		// Fix options.ignore
 		if(place.options.ignore === undefined) {
-			place.options.ignore = {};
+			place.options.ignore = {
+				update: false,
+				delete: false
+			};
 		}
 	});
 
