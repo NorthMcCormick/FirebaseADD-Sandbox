@@ -41,7 +41,12 @@ var tweetDenormalizer = new ADDDenormalizer({
 			type: 'string',									// What are we saving? A string, so it will just be a value in the database with a key
 			path: '/lastUser',								// Where should we put this? 
 			variables: {},
-			property: 'handle'
+			property: 'handle',
+			options: {
+				ignore: {
+					delete: true
+				}
+			}
 		}]
 	}
 });

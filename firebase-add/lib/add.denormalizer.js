@@ -25,6 +25,8 @@ function Denormalizer(options) {
 		console.error('Could not construct Denormalizer, invalid schema'.red);
 	}
 
+	vm.schema = fixSchema(vm.schema);
+
 	if(couldConstruct) {
 		if(Config.logs.debug) console.log('Loaded denormalizer');
 		if(Config.logs.debug) console.log('With Schema: ' + JSON.stringify(vm.schema));
@@ -225,6 +227,8 @@ var constructPlace = function(place, data) {
 	
 	constructedPlace._value = getValueToDuplicate(place, data);
 
+	constructedPlace._options = place.options;
+
 	return constructedPlace;
 };
 
@@ -423,6 +427,24 @@ var validateSchema = function(inputSchema) {
 	return schemaValid;
 };
 
+var fixSchema = function(inputSchema) {
+	// Fix places
+	
+	inputSchema.places.forEach(function(place) {
+		// Fix options
+		if(place.options === undefined) {
+			place.options = {};
+		}
+
+		// Fix options.ignore
+		if(place.options.ignore === undefined) {
+			place.options.ignore = {};
+		}
+	});
+
+	return inputSchema;
+};
+
 Denormalizer.prototype.denormalize = function(originalData) {
 	if(vm.schema !== null) {
 		if(Config.logs.debug) console.log('Attempting to denormalize data');
@@ -484,7 +506,9 @@ Denormalizer.prototype.update = function(newData) {
 				
 				constructedPlaces.forEach(function(place) {
 					if(place.operation === 'set') {
-						placesPromises.push(updatePlace(place));
+						if(place._constructedPlace._options.ignore.update !== true) {
+							placesPromises.push(updatePlace(place));
+						}
 					}
 				});
 
@@ -521,7 +545,9 @@ Denormalizer.prototype.delete = function(dataToRemove) {
 					
 					constructedPlaces.forEach(function(place) {
 						if(place.operation === 'set') {
-							placesPromises.push(removePlace(place));
+							if(place._constructedPlace._options.ignore.delete !== true) {
+								placesPromises.push(removePlace(place));
+							}
 						}
 					});
 
