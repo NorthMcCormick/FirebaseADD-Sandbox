@@ -133,11 +133,11 @@ var tweetDenormalizer = new ADDDenormalizer({
 			operation: 'set',
 			type: 'object',
 			path: 'allTweets/{{key}}',
-			variables: {									// We can use variables in handlebars that map our input data to the path
-				userHandle: 'handle',						// This will place our input handle to userHandle in the path
+			variables: {
+				userHandle: 'handle',
 				key: '$key'
 			},	
-			properties: ['tweet'],							// We only want to duplicate the tweet, not the handle over,
+			properties: ['tweet'],
 			options: {
 				database: 'ionic'
 			}
