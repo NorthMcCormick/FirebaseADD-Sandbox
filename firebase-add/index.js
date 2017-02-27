@@ -1,4 +1,8 @@
 module.exports = {
-	Config: require('./lib/add.config.js'),
-	Denormalizer: require('./lib/add.denormalizer.js')
+	Config: require('./add.config.js'),
+	Denormalizer: require('./add.denormalizer.js'),
+	Validators: require('./add.validators.js'),
+	Places: require('./add.places.js'),
+	Variables: require('./add.variables.js'),
+	Database: require('./add.database.js')
 };

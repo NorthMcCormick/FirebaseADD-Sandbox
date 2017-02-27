@@ -1,11 +1,14 @@
 var	Config = require('./add.config.js');
 var	Database = require('./add.database.js');
+var Validators = require('./add.validators.js');
+var Places = require('./add.places.js');
 var colors = require('colors');
 var Q = require('q');
 
 var vm = {
 	schema: null,
-	database: null
+	database: null,
+	constructed: false
 };
 
 function Denormalizer(options) {
@@ -17,22 +20,22 @@ function Denormalizer(options) {
 	console.log('Config');
 	console.log(Config);
 
-	if(validateSchema(options.schema)) {
+	if(Validators.validateSchema(options.schema)) {
 		vm.schema = options.schema;
+
+		vm.schema = Validators.fixSchema(vm.schema);
 	}else{
 		couldConstruct = false;
 
 		console.error('Could not construct Denormalizer, invalid schema'.red);
 	}
 
-	vm.schema = fixSchema(vm.schema);
-
 	if(couldConstruct) {
 		if(Config.logs.debug) console.log('Loaded denormalizer');
 		if(Config.logs.debug) console.log('With Schema: ' + JSON.stringify(vm.schema));
-	}else{
-
 	}
+
+	vm.constructed = couldConstruct;
 }
 
 var matchExpectingForDenormalize = function(data) {
@@ -123,160 +126,6 @@ var matchExpectingForUpdate = function(data) {
 
 	return matching;
 };
-
-var getVariablesInString = function(string) {
-	var variables = [];
-
-	if(Config.logs.debug) console.log('Attempting to get variables in string');
-
-	string = string.replace(/\{\{(.*?)\}\}/g, "$1");
-
-	if(Config.logs.debug) console.log(string);
-
-	variables = string.split(' ');
-
-	return variables;
-};
-
-var getVariableValues = function(variables, data) {
-	Object.keys(variables).forEach(function(variableKey) {
-		if(data[variables[variableKey]] !== undefined) {
-			variables[variableKey] = data[variables[variableKey]];
-		}
-	});
-
-	return variables;
-};
-
-var replaceVariablesInString = function(string, variables) {
-	Object.keys(variables).forEach(function(variable) {
-		string = string.replace('{{' + variable + '}}', variables[variable]);
-		string = string.replace('{{ ' + variable + ' }}', variables[variable]);
-	});
-
-	return string;
-};
-
-var getValueToDuplicate = function(place, data) {
-	var newValue = null;
-
-	switch(place.type) {
-		case 'object':
-			newValue = {};
-
-			place.properties.forEach(function(property) {
-				if(data[property] !== undefined) {
-					newValue[property] = data[property];
-				}
-			});
-		break;
-
-		case 'string':
-			if(place.property) {
-				newValue = data[place.property];
-			}else{
-				newValue = data;
-			}
-		break;
-
-		case 'number':
-			if(place.property) {
-				newValue = data[place.property];
-			}else{
-				newValue = data;
-			}
-		break;
-
-		case 'boolean':
-			if(place.property) {
-				newValue = data[place.property];
-			}else{
-				newValue = data;
-			}
-		break;
-
-		default:
-			console.log('Could not denormalize data. Place is trying to use an undefined type: ' + place.type);
-		break;
-	}
-
-	return newValue;
-};
-
-var constructPlace = function(place, data) {
-
-	if(Config.logs.debug) console.log('Attempting to construct place');
-	if(Config.logs.debug) console.log(JSON.stringify(place));
-	if(Config.logs.debug) console.log(JSON.stringify(data));
-
-	var constructedPlace = {};
-
-	// First get the variables and then construct the path from those variables
-
-	constructedPlace._variables = getVariableValues(place.variables, data);
-
-	if(Config.logs.debug) console.log('Variable Values');
-	if(Config.logs.debug) console.log(JSON.stringify(constructedPlace._variables));
-	
-	constructedPlace._path = replaceVariablesInString(place.path, constructedPlace._variables);
-
-	if(Config.logs.debug) console.log('Constructed path');
-	if(Config.logs.debug) console.log(constructedPlace._path);
-
-	// Now we need to construct the value that we are going to replicate
-	
-	constructedPlace._value = getValueToDuplicate(place, data);
-
-	constructedPlace._options = place.options;
-
-	return constructedPlace;
-};
-
-var validatePlace = function(places) {
-	// Todo: Validate that the place data is correct, variables are right, etc.
-	
-	return true;
-};
-
-var initPlaces = function(places, data) {
-	var placesValid = true;
-	var placesConstructed = true;
-
-	if(Config.logs.debug) console.log('Attempting to init places');
-	if(Config.logs.debug) console.log(JSON.stringify(places));
-	if(Config.logs.debug) console.log(JSON.stringify(data));
-
-	places.forEach(function(place) {
-		if(placesValid && placesConstructed) {
-			if(!validatePlace(place)) {
-				placesValid = false;
-			}else{
-				var constructedPlace = constructPlace(place, data);
-
-				if(!constructedPlace) {
-					placesConstructed = false;
-				}else{
-					place._constructedPlace = constructedPlace;
-				}
-			}
-		}
-	});
-
-	if(!placesValid) {
-		console.error('Could not denormalize: places not valid');
-	}
-
-	if(!placesConstructed) {
-		console.error('Could not denormalize: places could not be constructed');
-	}
-
-	if(placesValid && placesConstructed) {
-		return places;
-	}else{
-		return false;
-	}
-};
-
 	
 var denormalizeToPlace = function(place, data) {
 	return Q.Promise(function(resolve, reject) {
@@ -286,7 +135,7 @@ var denormalizeToPlace = function(place, data) {
 
 		switch(place.operation) {
 			case 'push':
-				Database.push(place._constructedPlace._path, place._constructedPlace._value).then(function(results) {
+				Database.push(place._constructedPlace._path, place._constructedPlace._value, place._constructedPlace._options.database).then(function(results) {
 					if(Config.logs.debug) console.log('Successfully denormalized');
 
 					resolve(true);
@@ -305,7 +154,7 @@ var denormalizeToPlace = function(place, data) {
 			break;
 
 			case 'set':
-				Database.set(place._constructedPlace._path, place._constructedPlace._value).then(function(results) {
+				Database.set(place._constructedPlace._path, place._constructedPlace._value, place._constructedPlace._options.database).then(function(results) {
 					if(Config.logs.debug) console.log('Successfully denormalized');
 
 					resolve(true);
@@ -339,7 +188,7 @@ var updatePlace = function(place, data) {
 
 		switch(place.operation) {
 			case 'set':
-				Database.set(place._constructedPlace._path, place._constructedPlace._value).then(function(results) {
+				Database.set(place._constructedPlace._path, place._constructedPlace._value, place._constructedPlace._options.database).then(function(results) {
 					if(Config.logs.debug) console.log('Successfully updated denormalized value');
 
 					resolve(true);
@@ -373,7 +222,7 @@ var removePlace = function(place, data) {
 
 		switch(place.operation) {
 			case 'set':
-				Database.delete(place._constructedPlace._path).then(function(results) {
+				Database.delete(place._constructedPlace._path, place._constructedPlace._options.database).then(function(results) {
 					if(Config.logs.debug) console.log('Successfully updated denormalized value');
 
 					resolve(true);
@@ -399,55 +248,6 @@ var removePlace = function(place, data) {
 	});
 };
 
-var validateSchema = function(inputSchema) {
-	var schemaValid = true;
-
-	if(inputSchema.expectingType) {
-		switch(inputSchema.expectingType) {
-			case 'object':
-				// Todo: Validate that it is has the other properties for validating an object
-			break;
-
-			case 'string':
-				// Todo: Validate that it has the other neccessary properites 
-			break;
-
-			default:
-				schemaValid = false;
-				if(Config.logs.debug) console.log('Schema invalid: Invalid \'expectingType\': ' + inputSchema.expectingType);
-			break;
-		}
-	}else{
-		schemaValid = false;
-		if(Config.logs.debug) console.log('Schema invalid: no \'expectingType\' found');
-	}
-
-	// TODO: More validation
-
-	return schemaValid;
-};
-
-var fixSchema = function(inputSchema) {
-	// Fix places
-	
-	inputSchema.places.forEach(function(place) {
-		// Fix options
-		if(place.options === undefined) {
-			place.options = {};
-		}
-
-		// Fix options.ignore
-		if(place.options.ignore === undefined) {
-			place.options.ignore = {
-				update: false,
-				delete: false
-			};
-		}
-	});
-
-	return inputSchema;
-};
-
 Denormalizer.prototype.denormalize = function(originalData) {
 	if(vm.schema !== null) {
 		if(Config.logs.debug) console.log('Attempting to denormalize data');
@@ -456,7 +256,7 @@ Denormalizer.prototype.denormalize = function(originalData) {
 			// Make sure we're seeing somewhat the object we need to have
 			if(matchExpectingForDenormalize(originalData)) {
 
-				var constructedPlaces = initPlaces(vm.schema.places, originalData);
+				var constructedPlaces = Places.initPlaces(vm.schema.places, originalData);
 
 				if(constructedPlaces) {
 
@@ -485,11 +285,12 @@ Denormalizer.prototype.denormalize = function(originalData) {
 			}else{
 				if(Config.logs.warn) console.warn('Could not denormalize object, schema does not match'.yellow);
 
-				resolve(false);
+				reject(false);
 			}
 		});
 	}else{
 		console.error('Could not denormalize, invalid schema'.red);
+		reject(false);
 	}
 };
 
@@ -498,7 +299,7 @@ Denormalizer.prototype.update = function(newData) {
 		if(Config.logs.debug) console.log('Attempting to update denormalized data');
 
 		return Q.Promise(function(resolve, reject) {
-			var constructedPlaces = initPlaces(vm.schema.places, newData);
+			var constructedPlaces = Places.initPlaces(vm.schema.places, newData);
 
 			if(constructedPlaces) {
 
@@ -523,6 +324,7 @@ Denormalizer.prototype.update = function(newData) {
 				}).catch(function(error) {
 					console.error('Could not update denormalized data'.red);
 					console.error(error);
+					reject(false);
 				});
 
 			}else{
@@ -538,7 +340,7 @@ Denormalizer.prototype.delete = function(dataToRemove) {
 
 		return Q.Promise(function(resolve, reject) {
 			if(matchExpectingForUpdate(dataToRemove)) {
-				var constructedPlaces = initPlaces(vm.schema.places, dataToRemove);
+				var constructedPlaces = Places.initPlaces(vm.schema.places, dataToRemove);
 
 				if(constructedPlaces) {
 					if(Config.logs.debug) console.log('Constructed places');
@@ -562,6 +364,8 @@ Denormalizer.prototype.delete = function(dataToRemove) {
 					}).catch(function(error) {
 						console.error('Could not delete denormalized data'.red);
 						console.error(error);
+
+						reject(false);
 					});
 
 				}else{
@@ -570,6 +374,12 @@ Denormalizer.prototype.delete = function(dataToRemove) {
 			};
 		});
 	}
+};
+
+// Helpers
+
+Denormalizer.prototype.isConstructed = function() {
+	return vm.constructed;
 };
 
 module.exports = Denormalizer;
